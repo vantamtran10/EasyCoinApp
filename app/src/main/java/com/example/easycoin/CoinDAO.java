@@ -28,5 +28,5 @@ public interface CoinDAO {
     void delete(Coin... coins);
 
     @Query("DELETE FROM coin WHERE id = :coinID")
-    void delete(int jokeId);
+    void delete(int coinID);
 }

@@ -48,7 +48,7 @@
                 android:id="@+id/imageView1"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                tools:srcCompat="@drawable/btc" />
+                tools:srcCompat="@drawable/BTC" />
 
             <TextView
                 android:id="@+id/textView1"
