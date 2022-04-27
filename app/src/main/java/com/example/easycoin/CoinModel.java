@@ -5,12 +5,14 @@ public class CoinModel {
     private String symbol;
     private double price;
     private double change24h;
+    private boolean favourite;
 
-    public CoinModel(String name, String symbol, double price, double change24h) {
+    public CoinModel(String name, String symbol, double price, double change24h, boolean favourite) {
         this.name = name;
         this.symbol = symbol;
         this.price = price;
         this.change24h = change24h;
+        this.favourite = favourite;
     }
 
     public String getName() {
@@ -40,4 +42,6 @@ public class CoinModel {
     public void setPrice(double price) {
         this.price = price;
     }
+
+    public boolean getFavourite()  { return favourite;};
 }

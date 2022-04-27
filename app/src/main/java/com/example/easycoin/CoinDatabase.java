@@ -20,12 +20,13 @@ public abstract class CoinDatabase extends RoomDatabase {
 
     private static CoinDatabase INSTANCE;
 
-    public static CoinDatabase getDatabase(final Context context) {
+    public static CoinDatabase getDatabase(Context context) {
         if (INSTANCE == null) {
             synchronized (CoinDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             CoinDatabase.class, "coin_database")
+                            .allowMainThreadQueries()
                             .addCallback(createCoinDatabaseCallback)
                             .build();
                 }
@@ -42,7 +43,7 @@ public abstract class CoinDatabase extends RoomDatabase {
         }
     };
 
-    public static void getCoin(int id, CoinListener listener) {
+    public static void getCoin(String symbol, CoinListener listener) {
         Handler handler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
@@ -53,7 +54,7 @@ public abstract class CoinDatabase extends RoomDatabase {
 
         (new Thread(() -> {
             Message msg = handler.obtainMessage();
-            msg.obj = INSTANCE.coinDAO().getById(id);
+            msg.obj = INSTANCE.coinDAO().getBySymbol(symbol);
             handler.sendMessage(msg);
         })).start();
     }

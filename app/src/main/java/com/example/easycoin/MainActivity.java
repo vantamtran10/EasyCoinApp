@@ -1,9 +1,11 @@
 package com.example.easycoin;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -26,14 +28,19 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements CoinAdapter.ItemClickListener {
 
     private EditText editTextSearch;
     private ProgressBar progressBarLoading;
     private CoinAdapter coinAdapter;
-    private ArrayList<CoinModel> coinModelArrayList;
+    private List<CoinModel> coinModelList;
+    private CoinViewModel coinViewModel;
+    private List<Coin> coins;
+    private CoinModel coinmodel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,14 +48,18 @@ public class MainActivity extends AppCompatActivity {
 
         editTextSearch = findViewById(R.id.editTextSearch);
         progressBarLoading = findViewById(R.id.progressBarLoading);
-        coinModelArrayList = new ArrayList<>();
+        coins = new ArrayList<>();
 
         RecyclerView recyclerView = findViewById(R.id.lstCoin);
-        coinAdapter = new CoinAdapter(coinModelArrayList, this);
+        coinAdapter = new CoinAdapter(coins, this);
         recyclerView.setAdapter(coinAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        
+
         initialData();
+        coinAdapter.setClickListener(this);
+
+        coinViewModel = new ViewModelProvider(this).get(CoinViewModel.class);
+        coinViewModel.getAllCoins().observe(this, coinAdapter::setCoin);
 
         editTextSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -63,18 +74,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                // on below line calling a
-                // method to filter our array list
                 filter(s.toString());
             }
 
             private void filter(String filter) {
-                ArrayList<CoinModel> filteredlist = new ArrayList<>();
-                // running a for loop to search the data from our array list.
-                for (CoinModel item : coinModelArrayList) {
-                    // on below line we are getting the item which are
-                    // filtered and adding it to filtered list.
-                    if (item.getName().toLowerCase().contains(filter.toLowerCase())) {
+                ArrayList<Coin> filteredlist = new ArrayList<>();
+                for (Coin item : coins) {
+                    if (item.name.toLowerCase().contains(filter.toLowerCase())) {
                         filteredlist.add(item);
                     }
                 }
@@ -107,8 +113,11 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject USD = quote.getJSONObject("USD");
                         double price = USD.getDouble("price");
                         double change24h = USD.getDouble("percent_change_24h");
+                        Coin temp = new Coin(0, name, symbol, price, change24h, false);
+                        coins.add(temp);
+                        CoinDatabase db = CoinDatabase.getDatabase(getApplicationContext());
+                        db.coinDAO().insert(temp);
 
-                        coinModelArrayList.add(new CoinModel(name, symbol, price, change24h));
                     }
                     coinAdapter.notifyDataSetChanged();
                 } catch (JSONException je) {
@@ -129,5 +138,17 @@ public class MainActivity extends AppCompatActivity {
         }
         };
         queue.add(jsonObjectRequest);
+    }
+
+
+    @Override
+    public void onClick(View view, int position) {
+        Log.e("coins", coins.toString());
+        Coin mydata = coins.get(position);
+        CoinDatabase db = CoinDatabase.getDatabase(getApplicationContext());
+        mydata.favourite = !mydata.favourite;
+        db.coinDAO().update(mydata.symbol, mydata.favourite);
+
+        //Log.i("Insert", mydata.getSymbol() + " - " + mydata.getFavourite());
     }
 }
