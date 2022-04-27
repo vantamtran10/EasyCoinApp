@@ -1,10 +1,14 @@
 package com.example.easycoin;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -150,5 +154,53 @@ public class MainActivity extends AppCompatActivity implements CoinAdapter.ItemC
         db.coinDAO().update(mydata.symbol, mydata.favourite);
 
         //Log.i("Insert", mydata.getSymbol() + " - " + mydata.getFavourite());
+    }
+
+    @Override
+    public void onClick2(View view, int position) {
+        Log.e("onCLick2", ".....");
+        Coin mydata = coins.get(position);
+        displaySetup(mydata.symbol);
+        //Log.i("Insert", mydata.getSymbol() + " - " + mydata.getFavourite());
+    }
+
+    public void displaySetup(String s) {
+        CoinDatabase.getCoin(s, data -> {
+            Bundle args = new Bundle();
+            args.putInt("id", data.id);
+            args.putString("coinSymbol", data.symbol);
+
+            DisplaySetupDialog setupDialog = new DisplaySetupDialog();
+            setupDialog.setArguments(args);
+            setupDialog.show(getSupportFragmentManager(), "setupDialog");
+        });
+    }
+
+    public static class DisplaySetupDialog extends DialogFragment {
+        int joke_id;
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            joke_id = getArguments().getInt("id");
+            final String coinSymbol = getArguments().getString("coinSymbol");
+            builder.setTitle(coinSymbol)
+                    .setMessage("setup")
+                    .setPositiveButton("Punchline",
+                            (dialog, id) -> {handleOK();})
+                    .setNegativeButton("Cancel",
+                            (dialog, id) -> {});
+            return builder.create();
+        }
+
+        private void handleOK() {
+            Toast.makeText(getActivity(), "OK was clicked.", Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        public void onSaveInstanceState(@NonNull Bundle outState) {
+            super.onSaveInstanceState(outState);
+            outState.putString("JJB", "tester");
+        }
     }
 }

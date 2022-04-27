@@ -1,6 +1,7 @@
 package com.example.easycoin;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,6 +33,8 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
 
     public interface ItemClickListener {
         void onClick(View view, int position);
+
+        void onClick2(View view, int adapterPosition);
     }
     private ItemClickListener clickListener;
     public CoinAdapter(List<Coin> coinModel, Context context) {
@@ -108,6 +111,9 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
             priceTrend = itemView.findViewById(R.id.priceTrend);
             imgFavourite = itemView.findViewById(R.id.imgFavourite);
             imgFavourite.setOnClickListener(this);
+            itemView.setOnClickListener(view -> {
+                if (clickListener != null) clickListener.onClick2(view, getAdapterPosition());
+            });
         }
 
         @Override
