@@ -1,1 +1,1 @@
-# EasyCoinApp
+#Crypto App
