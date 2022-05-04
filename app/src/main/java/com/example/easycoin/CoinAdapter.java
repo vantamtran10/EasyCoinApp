@@ -23,10 +23,10 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
     private static DecimalFormat df3 = new DecimalFormat("#.###");
     private ArrayList<CoinModel> coinModel;
     private Context context;
-    private List<Coin> coins;
+    private List<Coin> coinsList;
 
     public void setCoin(List<Coin> coins) {
-        this.coins = coins;
+        this.coinsList = coins;
         notifyDataSetChanged();
     }
 
@@ -36,15 +36,16 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
 
         void onClick2(View view, int adapterPosition);
     }
+
     private ItemClickListener clickListener;
     public CoinAdapter(List<Coin> coinModel, Context context) {
-        this.coins = coinModel;
+        this.coinsList = coinModel;
         this.context = context;
     }
 
 
     public void filterList(ArrayList<Coin> filterllist) {
-        coins = filterllist;
+        coinsList = filterllist;
         notifyDataSetChanged();
     }
 
@@ -57,12 +58,13 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull CoinViewHolder holder, int position) {
-        Coin modal = coins.get(position);
-        holder.coinName.setText(modal.name);
-        holder.coinPrice.setText("$ " + df3.format(modal.price));
-        holder.coinSymbol.setText(modal.symbol);
-        holder.coinChange24h.setText(df3.format(modal.change24h) + " %");
-        if (modal.change24h > 0){
+        Coin c = coinsList.get(position);
+        holder.current = c;
+        holder.coinName.setText(c.name);
+        holder.coinPrice.setText("$ " + df3.format(c.price));
+        holder.coinSymbol.setText(c.symbol);
+        holder.coinChange24h.setText(df3.format(c.change24h) + " %");
+        if (c.change24h > 0){
             holder.coinChange24h.setTextColor(Color.GREEN);
         }
         else
@@ -70,10 +72,10 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
             holder.coinChange24h.setTextColor(Color.RED);
             holder.priceTrend.setImageResource(R.drawable.down);
         }
-        int id = context.getResources().getIdentifier("drawable/"+ modal.symbol.toLowerCase(), null, context.getPackageName());
+        int id = context.getResources().getIdentifier("drawable/"+ c.symbol.toLowerCase(), null, context.getPackageName());
         holder.coinImg.setImageResource(id);
 
-        if (modal.favourite){
+        if (c.favourite){
             holder.imgFavourite.setImageResource(R.drawable.ic_thumb_up);
         }else {
             holder.imgFavourite.setImageResource(R.drawable.ic_thumb_down);
@@ -84,8 +86,8 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
 
     @Override
     public int getItemCount() {
-        if (coins != null)
-            return coins.size();
+        if (coinsList != null)
+            return coinsList.size();
         else return 0;
     }
 
@@ -95,11 +97,10 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
 
 
 
-    public class CoinViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public class CoinViewHolder extends RecyclerView.ViewHolder{
+        public Coin current;
         private TextView coinName, coinSymbol, coinPrice, coinChange24h;
         private ImageView coinImg, priceTrend, imgFavourite;
-        private Coin coin;
-        int coin_id;
 
         public CoinViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -110,17 +111,23 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
             coinImg = itemView.findViewById(R.id.imgCrypto);
             priceTrend = itemView.findViewById(R.id.priceTrend);
             imgFavourite = itemView.findViewById(R.id.imgFavourite);
-            imgFavourite.setOnClickListener(this);
+            imgFavourite.setOnClickListener(view -> {
+//                Log.e("Test", current.symbol + "- position: " + getAdapterPosition());
+//                current.favourite = !current.favourite;
+//                CoinDatabase.update(current);
+                if (clickListener != null) clickListener.onClick(view, getAdapterPosition());
+            });
             itemView.setOnClickListener(view -> {
                 if (clickListener != null) clickListener.onClick2(view, getAdapterPosition());
             });
         }
 
-        @Override
-        public void onClick(View view) {
-            if (clickListener != null) clickListener.onClick(view, getAdapterPosition());
-            Log.e("Test", coinSymbol.getText().toString());
 
-        }
+//        @Override
+//        public void onClick(View view, int position) {
+//            Coin current = coins.get(position);
+//            if (clickListener != null) clickListener.onClick(view, getAdapterPosition());
+//            Log.e("Test", coinSymbol.getText().toString() + "- position: " + getAdapterPosition());
+//        }
     }
 }

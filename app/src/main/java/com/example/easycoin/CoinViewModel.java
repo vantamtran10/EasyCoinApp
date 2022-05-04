@@ -20,6 +20,7 @@ public class CoinViewModel extends AndroidViewModel {
             coin = CoinDatabase.getDatabase(getApplication()).coinDAO().getFavourited(true);
         else
             coin = CoinDatabase.getDatabase(getApplication()).coinDAO().getAll();
+
     }
     public LiveData<List<Coin>> getAllCoins() {
         return coin;

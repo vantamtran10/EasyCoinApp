@@ -3,6 +3,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.room.Database;
@@ -12,6 +13,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 
 @Database(entities = {Coin.class}, version = 1, exportSchema = false)
 public abstract class CoinDatabase extends RoomDatabase {
+
+
+
     public interface CoinListener {
         void onCoinReturned(Coin coin);
     }
@@ -26,7 +30,6 @@ public abstract class CoinDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             CoinDatabase.class, "coin_database")
-                            .allowMainThreadQueries()
                             .addCallback(createCoinDatabaseCallback)
                             .build();
                 }
@@ -69,6 +72,12 @@ public abstract class CoinDatabase extends RoomDatabase {
 
 
     public static void update(Coin coin) {
+        Log.e("update...", coin.symbol.toString() );
         (new Thread(() -> INSTANCE.coinDAO().update(coin))).start();
+    }
+
+    public static void update(boolean favourite, int id) {
+
+        (new Thread(() -> INSTANCE.coinDAO().update(favourite, id))).start();
     }
 }

@@ -12,23 +12,26 @@ import androidx.room.Update;
 @Dao
 public interface CoinDAO {
     @Query("SELECT * FROM coin WHERE favourite = :favourite " +
-            "ORDER BY rowid")
+            "ORDER BY id")
     LiveData<List<Coin>> getFavourited(boolean favourite);
 
-    @Query("SELECT * FROM coin ORDER BY rowid")
+    @Query("SELECT * FROM coin ORDER BY id")
     LiveData<List<Coin>> getAll();
 
     @Query("SELECT * FROM coin WHERE symbol = :coinSymbol")
     Coin getBySymbol(String coinSymbol);
 
+    @Query("SELECT * FROM coin WHERE rowid = :coinId")
+    Coin getById(int coinId);
+
     @Insert
     void insert(Coin... coins);
 
     @Update
-    void update(Coin... coins);
+    void update(Coin... coin);
 
-    @Query("UPDATE coin SET favourite = :favourite WHERE symbol = :symbolInput")
-    void update(String symbolInput, Boolean favourite);
+    @Query("UPDATE coin SET favourite = :favourite WHERE id = :id")
+    void update(boolean favourite, int id);
 
     @Delete
     void delete(Coin... coins);

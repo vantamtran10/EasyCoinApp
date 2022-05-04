@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/menu_search"
+        android:icon="@drawable/ic_baseline_search_24"
+        android:title="@string/menu_search"
+        app:actionViewClass="android.widget.SearchView"
+        app:showAsAction="ifRoom|withText" />
+    <item android:id="@+id/menu_filter"
+        android:icon="@drawable/ic_sort"
+        android:title="@string/menu_thumb_up"
+        app:showAsAction="ifRoom" />
+    <item android:id="@+id/menu_settings"
+        android:icon="@drawable/ic_setting"
+        android:title="@string/menu_settings"
+        app:showAsAction="never" />
+</menu>

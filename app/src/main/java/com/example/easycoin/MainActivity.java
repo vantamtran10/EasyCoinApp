@@ -3,6 +3,8 @@ package com.example.easycoin;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -10,13 +12,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -44,14 +50,21 @@ public class MainActivity extends AppCompatActivity implements CoinAdapter.ItemC
     private CoinViewModel coinViewModel;
     private List<Coin> coins;
     private CoinModel coinmodel;
-
+    private boolean filtered = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES){
+            setTheme(R.style.DarkTheme);
+        } else {
+            setTheme(R.style.AppTheme);
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        editTextSearch = findViewById(R.id.editTextSearch);
-        progressBarLoading = findViewById(R.id.progressBarLoading);
+        // Set the action bar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         coins = new ArrayList<>();
 
         RecyclerView recyclerView = findViewById(R.id.lstCoin);
@@ -65,26 +78,25 @@ public class MainActivity extends AppCompatActivity implements CoinAdapter.ItemC
         coinViewModel = new ViewModelProvider(this).get(CoinViewModel.class);
         coinViewModel.getAllCoins().observe(this, coinAdapter::setCoin);
 
-        editTextSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_activity, menu);
+        MenuItem menuItem = menu.findItem(R.id.menu_search);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setQueryHint("Search...");
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                filter(s.toString());
-            }
-
-            private void filter(String filter) {
+            public boolean onQueryTextChange(String s) {
                 ArrayList<Coin> filteredlist = new ArrayList<>();
                 for (Coin item : coins) {
-                    if (item.name.toLowerCase().contains(filter.toLowerCase())) {
+                    if (item.name.toLowerCase().contains(s.toLowerCase())) {
                         filteredlist.add(item);
                     }
                 }
@@ -93,8 +105,27 @@ public class MainActivity extends AppCompatActivity implements CoinAdapter.ItemC
                 } else {
                     coinAdapter.filterList(filteredlist);
                 }
+                return false;
             }
         });
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_filter:
+                filtered = !filtered;
+                coinViewModel.filterCoin(filtered);
+                coinViewModel.getAllCoins().observe(this, coinAdapter::setCoin);
+                return true;
+            case R.id.menu_settings:
+                startActivity(new Intent(this, SettingFragment.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private void initialData() {
@@ -105,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements CoinAdapter.ItemC
                 new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                progressBarLoading.setVisibility(View.GONE);
                 try {
                     JSONArray dataArray = response.getJSONArray("data");
                     Log.d("DATA", dataArray.toString());
@@ -117,10 +147,10 @@ public class MainActivity extends AppCompatActivity implements CoinAdapter.ItemC
                         JSONObject USD = quote.getJSONObject("USD");
                         double price = USD.getDouble("price");
                         double change24h = USD.getDouble("percent_change_24h");
-                        Coin temp = new Coin(0, name, symbol, price, change24h, false);
+                        Coin temp = new Coin( 0, name, symbol, price, change24h, false);
                         coins.add(temp);
                         CoinDatabase db = CoinDatabase.getDatabase(getApplicationContext());
-                        db.coinDAO().insert(temp);
+                        db.insert(temp);
 
                     }
                     coinAdapter.notifyDataSetChanged();
@@ -147,13 +177,11 @@ public class MainActivity extends AppCompatActivity implements CoinAdapter.ItemC
 
     @Override
     public void onClick(View view, int position) {
-        Log.e("coins", coins.toString());
-        Coin mydata = coins.get(position);
-        CoinDatabase db = CoinDatabase.getDatabase(getApplicationContext());
-        mydata.favourite = !mydata.favourite;
-        db.coinDAO().update(mydata.symbol, mydata.favourite);
+        Coin coin = coins.get(position);
+        Log.e("update coins id", coin.symbol + "-"  + position);
+        coin.favourite = !coin.favourite;
+        CoinDatabase.update(coin.favourite, position+1);
 
-        //Log.i("Insert", mydata.getSymbol() + " - " + mydata.getFavourite());
     }
 
     @Override
@@ -161,7 +189,6 @@ public class MainActivity extends AppCompatActivity implements CoinAdapter.ItemC
         Log.e("onCLick2", ".....");
         Coin mydata = coins.get(position);
         displaySetup(mydata.symbol);
-        //Log.i("Insert", mydata.getSymbol() + " - " + mydata.getFavourite());
     }
 
     public void displaySetup(String s) {
